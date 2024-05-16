@@ -55,4 +55,62 @@ describe('Band, Musician, and Song Models', () => {
         const foundMusician = await Musician.findByPk(musician.id);
         expect(foundMusician).toBeNull();
     })
+
+    test('can create bands with musicians', async () => {
+        // Create bands
+        const band1 = await Band.create({ name: 'Band 1' });
+        const band2 = await Band.create({ name: 'Band 2' });
+
+        // Create musicians
+        const musician1 = await Musician.create({ name: 'Musician 1' });
+        const musician2 = await Musician.create({ name: 'Musician 2' });
+
+        // Associate musicians with bands
+        await band1.addMusician(musician1);
+        await band2.addMusician(musician2);
+
+        // Retrieve bands with musicians
+        const bandsWithMusicians = await Band.findAll({
+            include: [{ model: Musician }]
+        });
+       // Check associations
+       expect(bandsWithMusicians.length).toBe(2);
+       expect(bandsWithMusicians[0].Musicians.length).toBe(1);
+       expect(bandsWithMusicians[1].Musicians.length).toBe(1);
+   });
+   
+   
+
+   test('can add multiple songs to a band', async () => {
+    // Create bands
+    const band1 = await Band.create({ name: 'Band 1' });
+    const band2 = await Band.create({ name: 'Band 2' });
+
+    // Create songs
+    const song1 = await Song.create({ title: 'Song 1' });
+    const song2 = await Song.create({ title: 'Song 2' });
+
+    // Add songs to one band
+    await band1.addSongs([song1, song2]);
+
+
+    // Retrieve songs for the band
+    const songsForBand1 = await band1.getSongs();
+
+    // Check associations
+    expect(songsForBand1.length).toBe(2);
+    expect(songsForBand1[0].title).toBe('Song 1');
+    expect(songsForBand1[1].title).toBe('Song 2');
+
+    // Do the same with the bands
+    const bandsForSong1 = await song1.getBands();
+    const bandsForSong2 = await song2.getBands();
+
+    expect(bandsForSong1.length).toBe(1);
+    expect(bandsForSong2.length).toBe(1);
+    expect(bandsForSong1[0].name).toBe('Band 1');
+    expect(bandsForSong2[0].name).toBe('Band 1');
+});
+  
+
 })
